@@ -109,7 +109,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               <Command size={19} strokeWidth={2.3} />
             </span>
             <span className="brand-name">
-              Maint<span>AI</span>
+              Main<span>AI</span>
             </span>
             <span className="brand-edition">OPS</span>
           </Link>
@@ -197,7 +197,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               {menuOpen ? <X size={19} /> : <Menu size={19} />}
             </button>
             <div className="breadcrumb">
-              <span>MaintAI</span>
+              <span>MainAI</span>
               <span className="breadcrumb-divider">/</span>
               <span className="breadcrumb-current">
                 {currentPage?.label ?? "Workspace"}
@@ -223,7 +223,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         <main className="main-content" id="main-content">
           {children}
           <footer className="app-footer">
-            <span>MaintAI <span aria-hidden="true">·</span> Industrial monitoring, reimagined.</span>
+            <span>MainAI <span aria-hidden="true">·</span> Industrial monitoring, reimagined.</span>
             <span>All readings are <strong>SIMULATED DATA</strong></span>
           </footer>
         </main>

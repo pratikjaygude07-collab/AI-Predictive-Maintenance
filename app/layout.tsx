@@ -10,8 +10,8 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: {
-    default: "MaintAI | Industrial maintenance intelligence",
-    template: "%s | MaintAI",
+    default: "MainAI | Industrial maintenance intelligence",
+    template: "%s | MainAI",
   },
   description:
     "A software-only demonstration of predictive maintenance monitoring for industrial machinery.",

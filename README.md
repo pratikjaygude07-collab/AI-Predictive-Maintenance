@@ -1,6 +1,6 @@
-# MaintAI
+# MainAI
 
-MaintAI is a software-only industrial monitoring demonstration for electric
+MainAI is a software-only industrial monitoring demonstration for electric
 motors, bearings, and other rotating machinery. It provides a responsive
 command-center interface backed by deterministic, seeded sample data.
 

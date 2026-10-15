@@ -514,7 +514,7 @@ export function FleetView({ assets }: { assets: readonly DemoAsset[] }) {
       <div className="fleet-footer-note" role="note">
         <span className="simulated-dot" aria-hidden="true" />
         Condition groupings are based on fixed demonstration thresholds.
-        MaintAI does not provide AI failure forecasts or fault diagnoses.
+        MainAI does not provide AI failure forecasts or fault diagnoses.
       </div>
     </>
   );
