@@ -1,10 +1,16 @@
 "use client";
 
-import { ContactShadows, OrbitControls } from "@react-three/drei";
+import {
+  ContactShadows,
+  Environment,
+  Lightformer,
+  OrbitControls,
+} from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import {
   Component,
   type ErrorInfo,
+  type KeyboardEvent,
   type RefObject,
   type ReactNode,
   Suspense,
@@ -15,7 +21,11 @@ import {
 } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import * as THREE from "three";
-import type { MotorComponentId } from "../../../lib/digital-twin";
+import {
+  adjustCameraForKey,
+  MOTOR_SCENE_LIGHTING,
+  type MotorComponentId,
+} from "../../../lib/digital-twin";
 
 interface ModelPartProps {
   id: MotorComponentId;
@@ -151,9 +161,9 @@ function CoolingFins({
   const finMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: "#526c83",
-        metalness: 0.78,
-        roughness: 0.31,
+        color: "#71889b",
+        metalness: 0.58,
+        roughness: 0.46,
       }),
     [],
   );
@@ -203,39 +213,39 @@ function ElectricMotor({
   const materials = useMemo(
     () => ({
       housing: new THREE.MeshStandardMaterial({
-        color: "#45627b",
-        metalness: 0.76,
-        roughness: 0.33,
+        color: "#607b91",
+        metalness: 0.48,
+        roughness: 0.48,
       }),
       end: new THREE.MeshStandardMaterial({
-        color: "#70879a",
-        metalness: 0.84,
-        roughness: 0.27,
+        color: "#8599a9",
+        metalness: 0.55,
+        roughness: 0.43,
       }),
       inset: new THREE.MeshStandardMaterial({
-        color: "#17293a",
-        metalness: 0.77,
-        roughness: 0.36,
+        color: "#283e52",
+        metalness: 0.32,
+        roughness: 0.5,
       }),
       steel: new THREE.MeshStandardMaterial({
-        color: "#c5d0d6",
-        metalness: 0.94,
-        roughness: 0.2,
+        color: "#aab9c3",
+        metalness: 0.62,
+        roughness: 0.4,
       }),
       darkSteel: new THREE.MeshStandardMaterial({
-        color: "#354a5d",
-        metalness: 0.85,
-        roughness: 0.28,
+        color: "#4a6073",
+        metalness: 0.55,
+        roughness: 0.45,
       }),
       terminal: new THREE.MeshStandardMaterial({
-        color: "#273b4d",
-        metalness: 0.66,
-        roughness: 0.39,
+        color: "#3e5669",
+        metalness: 0.3,
+        roughness: 0.53,
       }),
       brass: new THREE.MeshStandardMaterial({
-        color: "#c5a467",
-        metalness: 0.79,
-        roughness: 0.25,
+        color: "#b79a67",
+        metalness: 0.55,
+        roughness: 0.43,
       }),
     }),
     [],
@@ -471,7 +481,18 @@ export function MotorScene({
   onViewerError: () => void;
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  const cameraRef = useRef<THREE.Camera>(null);
   const initialCamera = useMemo(() => new THREE.Vector3(4.9, 3.2, 6.3), []);
+
+  function handleModelKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const controls = controlsRef.current;
+    const camera = cameraRef.current;
+    if (!controls || !camera) return;
+
+    if (!adjustCameraForKey(camera, controls.target, event.key)) return;
+    event.preventDefault();
+    controls.update();
+  }
 
   return (
     <WebGLSceneErrorBoundary
@@ -488,53 +509,100 @@ export function MotorScene({
         </div>
       }
     >
-      <Canvas
-        camera={{ fov: 38, near: 0.1, far: 100, position: initialCamera.toArray() }}
-        dpr={[1, 1.6]}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-        onCreated={({ gl }) => {
-          gl.setClearColor("#080d18", 0);
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.16;
-          gl.outputColorSpace = THREE.SRGBColorSpace;
-          onViewerReady();
-        }}
+      <div
+        className="twin-model-keyboard"
+        tabIndex={0}
+        role="group"
+        aria-label="Interactive motor model. Use arrow keys to orbit and plus or minus to zoom."
+        onKeyDown={handleModelKeyDown}
       >
-        <color attach="background" args={["#080d18"]} />
-        <ambientLight intensity={1.7} />
-        <directionalLight
-          castShadow
-          intensity={3.2}
-          position={[2, 6, 5]}
-          shadow-mapSize-height={1024}
-          shadow-mapSize-width={1024}
-        />
-        <pointLight color="#3cb9d6" intensity={75} position={[-4, 1, -3]} />
-        <pointLight color="#88b6d0" intensity={34} position={[5, 1, 3]} />
-        <Suspense fallback={null}>
-          <ElectricMotor selectedPart={selectedPart} onSelect={onSelect} />
-          <ContactShadows
-            blur={2.5}
-            far={4}
-            opacity={0.42}
-            position={[0, -0.99, 0]}
-            scale={7}
+        <Canvas
+          camera={{ fov: 38, near: 0.1, far: 100, position: initialCamera.toArray() }}
+          dpr={[1, 1.6]}
+          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+          shadows
+          onCreated={({ gl }) => {
+            gl.setClearColor("#080d18", 0);
+            gl.toneMapping = THREE.ACESFilmicToneMapping;
+            gl.toneMappingExposure = 1.08;
+            gl.outputColorSpace = THREE.SRGBColorSpace;
+            gl.shadowMap.type = THREE.PCFShadowMap;
+            onViewerReady();
+          }}
+        >
+          <color attach="background" args={["#080d18"]} />
+          <ambientLight intensity={MOTOR_SCENE_LIGHTING.ambient} />
+          <hemisphereLight
+            args={["#dce9f1", "#354657", MOTOR_SCENE_LIGHTING.hemisphere]}
           />
-        </Suspense>
-        <OrbitControls
-          autoRotate={autoRotate}
-          autoRotateSpeed={0.75}
-          dampingFactor={0.08}
-          enableDamping
-          enablePan={false}
-          maxDistance={10}
-          maxPolarAngle={Math.PI * 0.82}
-          minDistance={3.2}
-          ref={controlsRef}
-          target={[0, 0, 0]}
-        />
-        <ResetCamera token={resetToken} controlsRef={controlsRef} />
-      </Canvas>
+          <directionalLight
+            castShadow
+            intensity={MOTOR_SCENE_LIGHTING.key}
+            position={[4, 7, 6]}
+            shadow-bias={-0.0001}
+            shadow-camera-bottom={-4}
+            shadow-camera-left={-4}
+            shadow-camera-right={4}
+            shadow-camera-top={4}
+            shadow-mapSize-height={1024}
+            shadow-mapSize-width={1024}
+          />
+          <directionalLight
+            color="#9dd7e4"
+            intensity={MOTOR_SCENE_LIGHTING.rim}
+            position={[-5, 3, -4]}
+          />
+          <directionalLight
+            color="#e3edf2"
+            intensity={MOTOR_SCENE_LIGHTING.fill}
+            position={[4, 1, 4]}
+          />
+          <Environment resolution={128}>
+            <Lightformer
+              color="#dce9ef"
+              intensity={2.5}
+              position={[0, 5, 0]}
+              scale={[8, 5, 1]}
+            />
+            <Lightformer
+              color="#83dff0"
+              intensity={1.2}
+              position={[-5, 1, 2]}
+              scale={[5, 4, 1]}
+            />
+            <Lightformer
+              color="#fff3d8"
+              intensity={1.6}
+              position={[5, 2, -4]}
+              scale={[4, 4, 1]}
+            />
+          </Environment>
+          <Suspense fallback={null}>
+            <ElectricMotor selectedPart={selectedPart} onSelect={onSelect} />
+            <ContactShadows
+              blur={2.5}
+              far={4}
+              opacity={0.42}
+              position={[0, -0.99, 0]}
+              scale={7}
+            />
+          </Suspense>
+          <OrbitControls
+            autoRotate={autoRotate}
+            autoRotateSpeed={0.75}
+            dampingFactor={0.08}
+            enableDamping
+            enablePan={false}
+            maxDistance={10}
+            maxPolarAngle={Math.PI * 0.82}
+            minDistance={3.2}
+            ref={controlsRef}
+            target={[0, 0, 0]}
+          />
+          <ResetCamera token={resetToken} controlsRef={controlsRef} />
+          <CameraReference cameraRef={cameraRef} />
+        </Canvas>
+      </div>
     </WebGLSceneErrorBoundary>
   );
 }
@@ -555,6 +623,23 @@ function ResetCamera({
     controlsRef.current?.reset();
     controlsRef.current?.update();
   }, [camera, controlsRef, token]);
+
+  return null;
+}
+
+function CameraReference({
+  cameraRef,
+}: {
+  cameraRef: RefObject<THREE.Camera | null>;
+}) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    cameraRef.current = camera;
+    return () => {
+      cameraRef.current = null;
+    };
+  }, [camera, cameraRef]);
 
   return null;
 }

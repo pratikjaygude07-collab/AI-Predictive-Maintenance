@@ -80,8 +80,8 @@ export function TwinViewport({
         </strong>
         <span>
           {status === "timeout"
-            ? "This device did not finish starting its local WebGL viewer. Use the component list and simulated readings instead."
-            : "This browser or device does not support the local WebGL 2 viewer. Use the component list and simulated readings instead."}
+            ? "This device did not finish starting its local WebGL viewer. Use the component list and descriptions instead."
+            : "This browser or device does not support the local WebGL 2 viewer. Use the component list and descriptions instead."}
         </span>
       </div>
     );

@@ -6,6 +6,7 @@ import {
   Boxes,
   Command,
   Gauge,
+  List,
   Menu,
   X,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const navigation = [
   { label: "Fleet", href: "/fleet", icon: Boxes },
   { label: "Digital twin", href: "/machine", icon: Box },
   { label: "Diagnostics", href: "/diagnostics", icon: Activity },
+  { label: "Work orders", href: "/work-orders", icon: List },
 ];
 
 const implementedRoutes = new Set([
@@ -25,6 +27,7 @@ const implementedRoutes = new Set([
   "/fleet",
   "/machine",
   "/diagnostics",
+  "/work-orders",
 ]);
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
@@ -173,10 +176,13 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
               <Activity size={16} />
             </span>
             <div>
-              <div className="environment-title">Demo environment</div>
-              <div className="environment-caption">Local simulation only</div>
+              <div className="environment-title">Backend status</div>
+              <div className="environment-caption">No data source connected</div>
             </div>
-            <span className="environment-dot" aria-label="Demo mode active" />
+            <span
+              className="environment-dot"
+              aria-label="Backend not connected"
+            />
           </div>
           <div className="sidebar-footnote">MAINTENANCE INTELLIGENCE</div>
         </div>
@@ -207,15 +213,15 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           <div className="topbar-trailing">
             <span className="topbar-context">
               <span className="topbar-context-dot" aria-hidden="true" />
-              Demonstration workspace
+              Live data unavailable
             </span>
-            <span className="demo-pill">
+            <span className="backend-pill">
               <span aria-hidden="true" />
-              DEMO MODE
+              NO BACKEND
             </span>
             <div className="workspace-switcher">
-              <span className="workspace-avatar">DP</span>
-              <span className="workspace-name">Demo plant</span>
+              <span className="workspace-avatar">PL</span>
+              <span className="workspace-name">Plant workspace</span>
             </div>
           </div>
         </header>
@@ -224,7 +230,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           {children}
           <footer className="app-footer">
             <span>MainAI <span aria-hidden="true">·</span> Industrial monitoring, reimagined.</span>
-            <span>All readings are <strong>SIMULATED DATA</strong></span>
+            <span>Live telemetry and analytics are not connected.</span>
           </footer>
         </main>
       </div>

@@ -1,5 +1,5 @@
 {
-  "name": "maintai-frontend",
+  "name": "mainai-frontend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test lib/demo-data.test.ts"
+    "test": "node --experimental-strip-types --test lib/*.test.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

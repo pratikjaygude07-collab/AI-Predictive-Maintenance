@@ -1,4 +1,4 @@
-import type { DemoAsset } from "./demo-data.ts";
+import { Spherical, Vector3, type Camera } from "three";
 
 export type ViewerMode = "interactive" | "fallback";
 export type MotorComponentId =
@@ -18,13 +18,13 @@ export interface MotorComponentDescription {
   material: string;
 }
 
-export interface MachineMeasurement {
-  id: "temperature" | "vibration" | "speed" | "load";
-  label: string;
-  value: string;
-  unit: string;
-  source: "simulated";
-}
+export const MOTOR_SCENE_LIGHTING = {
+  ambient: 0.8,
+  hemisphere: 0.6,
+  key: 2,
+  rim: 1.2,
+  fill: 0.8,
+} as const;
 
 export const MOTOR_COMPONENTS: readonly MotorComponentDescription[] = [
   {
@@ -32,40 +32,40 @@ export const MOTOR_COMPONENTS: readonly MotorComponentDescription[] = [
     name: "Motor housing",
     category: "STRUCTURAL",
     description:
-      "Ribbed enclosure around the stator assembly. The outer casing supports heat dissipation and protects internal electrical components.",
-    material: "Simulated cast-aluminium finish",
+      "Ribbed enclosure around the stator assembly. The outer casing represents heat-dissipating structure around internal electrical components.",
+    material: "Illustrative cast aluminium",
   },
   {
     id: "cooling",
     name: "Cooling fins",
     category: "THERMAL",
     description:
-      "External cooling ribs increase the casing surface area. Fin geometry is procedurally modelled as part of this local demonstration.",
-    material: "Simulated anodized metal",
+      "External cooling ribs increase the casing surface area. Fin geometry is procedurally modelled for this local illustration.",
+    material: "Illustrative anodized metal",
   },
   {
     id: "drive-end",
     name: "Drive-end cover",
     category: "BEARING SUPPORT",
     description:
-      "End shield at the output-shaft side. It represents the support interface for the drive-end bearing assembly.",
-    material: "Simulated machined aluminium",
+      "End shield at the output-shaft side, representing a support interface for the drive-end bearing assembly.",
+    material: "Illustrative machined aluminium",
   },
   {
     id: "non-drive-end",
     name: "Non-drive-end cover",
     category: "BEARING SUPPORT",
     description:
-      "Opposite end shield, shown with a local simulated cooling fan guard and ventilation apertures.",
-    material: "Simulated machined aluminium",
+      "Opposite end shield, shown with a locally illustrated cooling fan guard and ventilation apertures.",
+    material: "Illustrative machined aluminium",
   },
   {
     id: "shaft",
     name: "Output shaft",
     category: "ROTATING ASSEMBLY",
     description:
-      "Stepped output shaft showing the motor-to-load interface. The model is static and does not represent a live or measured rotation.",
-    material: "Simulated brushed steel",
+      "Stepped output shaft showing a motor-to-load interface. The model is static and does not represent live or measured rotation.",
+    material: "Illustrative brushed steel",
   },
   {
     id: "mounting",
@@ -73,7 +73,7 @@ export const MOTOR_COMPONENTS: readonly MotorComponentDescription[] = [
     category: "MOUNTING",
     description:
       "Base feet and bolt details representing a common horizontal motor mounting arrangement.",
-    material: "Simulated cast-aluminium finish",
+    material: "Illustrative cast aluminium",
   },
   {
     id: "terminal-box",
@@ -81,7 +81,7 @@ export const MOTOR_COMPONENTS: readonly MotorComponentDescription[] = [
     category: "ELECTRICAL CONNECTION",
     description:
       "Raised junction box on top of the motor casing. Internal wiring and electrical connections are not modelled.",
-    material: "Simulated painted steel",
+    material: "Illustrative painted steel",
   },
 ];
 
@@ -89,37 +89,41 @@ export function getViewerMode(webGL2Available: boolean): ViewerMode {
   return webGL2Available ? "interactive" : "fallback";
 }
 
-export function getMachineMeasurements(
-  asset: DemoAsset,
-): MachineMeasurement[] {
-  return [
-    {
-      id: "temperature",
-      label: "Temperature",
-      value: asset.temperatureC.toFixed(1),
-      unit: "°C",
-      source: "simulated",
-    },
-    {
-      id: "vibration",
-      label: "Vibration RMS",
-      value: asset.vibrationMmS.toFixed(1),
-      unit: "mm/s",
-      source: "simulated",
-    },
-    {
-      id: "speed",
-      label: "Shaft speed",
-      value: asset.speedRpm.toLocaleString("en-US"),
-      unit: "rpm",
-      source: "simulated",
-    },
-    {
-      id: "load",
-      label: "Operating load",
-      value: String(asset.loadPercent),
-      unit: "%",
-      source: "simulated",
-    },
-  ];
+export function adjustCameraForKey(
+  camera: Camera,
+  target: Vector3,
+  key: string,
+): boolean {
+  const offset = new Vector3().copy(camera.position).sub(target);
+  const spherical = new Spherical().setFromVector3(offset);
+  const step = Math.PI / 12;
+
+  switch (key) {
+    case "ArrowLeft":
+      spherical.theta += step;
+      break;
+    case "ArrowRight":
+      spherical.theta -= step;
+      break;
+    case "ArrowUp":
+      spherical.phi = Math.max(0.12, spherical.phi - step);
+      break;
+    case "ArrowDown":
+      spherical.phi = Math.min(Math.PI * 0.82, spherical.phi + step);
+      break;
+    case "+":
+    case "=":
+      spherical.radius = Math.max(3.2, spherical.radius / 1.2);
+      break;
+    case "-":
+      spherical.radius = Math.min(10, spherical.radius * 1.2);
+      break;
+    default:
+      return false;
+  }
+
+  offset.setFromSpherical(spherical);
+  camera.position.copy(target).add(offset);
+  camera.lookAt(target);
+  return true;
 }

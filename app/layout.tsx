@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Suspense } from "react";
 import { SiteShell } from "./components/site-shell";
+import { ShellSkeleton } from "./components/shell-skeleton";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | MainAI",
   },
   description:
-    "A software-only demonstration of predictive maintenance monitoring for industrial machinery.",
+    "An industrial predictive-maintenance interface. Live monitoring requires a configured backend integration.",
 };
 
 export default function RootLayout({
@@ -27,7 +29,9 @@ export default function RootLayout({
       className={geistSans.variable}
     >
       <body>
-        <SiteShell>{children}</SiteShell>
+        <Suspense fallback={<ShellSkeleton />}>
+          <SiteShell>{children}</SiteShell>
+        </Suspense>
       </body>
     </html>
   );

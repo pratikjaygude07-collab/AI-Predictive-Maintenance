@@ -1,20 +1,21 @@
 # MainAI
 
-MainAI is a software-only industrial monitoring demonstration for electric
-motors, bearings, and other rotating machinery. It provides a responsive
-command-center interface backed by deterministic, seeded sample data.
+MainAI is a Next.js interface for industrial predictive maintenance. It
+currently includes a locally rendered, illustrative electric-motor model;
+it does **not** connect to equipment, display live telemetry, or make
+predictions.
 
-The project does not connect to equipment or provide real AI predictions.
-Readings and signal plots are labelled **SIMULATED DATA**.
+Dashboard, Fleet, and Diagnostics show explicit unavailable states until
+their real data sources are integrated. The application does not substitute
+mock data when a service is absent. Do not use this frontend for operational
+decisions until a verified backend and prediction service are connected.
 
 ## Prerequisites
 
-- Node.js 22.6 or later (the test command uses Node's TypeScript type stripping;
-  Node.js 24 is used for current verification)
+- Node.js 22.6 or later
 - npm
-- A modern browser; the Digital Twin requires WebGL 2 for its interactive
-  viewer. Other Diagnostics and asset information remain available if WebGL is
-  unavailable.
+- A modern browser; the Digital Twin viewer requires WebGL 2. Component
+  descriptions remain available if WebGL cannot initialize.
 
 ## Install and run
 
@@ -23,81 +24,69 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The development server
-supports hot reload.
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Commands
 
 ```bash
 npm run dev       # Start the development server
-npm test          # Run deterministic simulator and diagnostics tests
+npm test          # Run the focused digital-twin tests
 npm run lint      # Run ESLint
 npm run build     # Create an optimized production build
-npm run start     # Serve the production build (after npm run build)
+npm run start     # Serve the production build
 ```
 
-The test suite uses Node's built-in test runner and TypeScript type stripping;
-it does not require a separate test framework.
+## Routes
 
-## Application routes
-
-| Route | Purpose |
+| Route | Current behavior |
 | --- | --- |
-| `/dashboard` | Fleet KPIs, simulated operating-condition summary, temperature and vibration trends, maintenance review items, and equipment inventory |
-| `/fleet` | Searchable, filterable, sortable equipment register with grid/list views and expandable asset details |
-| `/machine` | Locally rendered procedural motor model, selectable components, simulated measurements, orbit/zoom, camera reset, and auto-rotate |
-| `/diagnostics` | Deterministic illustrative vibration waveform, derived frequency spectrum, temperature trend, and educational fault-pattern references |
+| `/` | Redirects to `/dashboard` |
+| `/dashboard` | Reports that plant, sensor, alerts, and maintenance data are unavailable |
+| `/fleet` | Reports that no equipment inventory source is connected |
+| `/machine` | Interactive local motor illustration; explicitly not linked to an asset or telemetry |
+| `/diagnostics` | Reports that sensor telemetry and the prediction service are unavailable |
 
-Dashboard and Fleet asset links carry the selected asset through the `assetId`
-query parameter. Digital Twin and Diagnostics accept the same parameter, for
-example `/diagnostics?assetId=MTR-006`. Unknown asset IDs do not replace the
-route's default selection.
+Fleet remains in navigation because it is a useful equipment-register surface
+and is directly linked to the maintenance workflow. Its data is not populated
+with fictional assets.
 
-## Architecture
+## Architecture and integrations
 
-- **Next.js App Router** with TypeScript and React Server Components for route
+- Next.js App Router with TypeScript and React Server Components for route
   entry points.
-- **`app/components/site-shell.tsx`** provides shared navigation, responsive
-  mobile drawer, workspace context, and persistent DEMO MODE indicator.
-- **`app/globals.css`** contains the dark industrial design system and
-  responsive styles.
-- **`lib/demo-data.ts`** defines shared fictional assets, deterministic seeded
-  readings, filters, summaries, and dashboard trends.
-- **`lib/digital-twin.ts`** contains component descriptions, viewer mode, and
-  asset-derived measurement formatting.
-- **`lib/diagnostics.ts`** generates deterministic simulated waveform samples,
-  a discrete Fourier spectrum derived from those samples, temperature history,
-  and educational fault-pattern text.
-- **Digital Twin scene components** use Three.js, React Three Fiber, and Drei
-  to render local procedural geometry without remote 3D assets.
-- Charts are accessible inline SVG, avoiding a separate charting dependency.
+- `app/components/site-shell.tsx` provides the shared navigation and responsive
+  mobile drawer.
+- `app/globals.css` contains the dark industrial design system and responsive
+  styles.
+- `app/components/ui/data-state.tsx` contains distinct loading, empty, error,
+  and API-unavailable states. Route loading skeletons and an application error
+  boundary provide accessible recovery and status messaging.
+- `app/components/digital-twin/` renders a procedural motor illustration
+  locally with Three.js, React Three Fiber, and Drei.
+- `lib/digital-twin.ts` contains model component descriptions and the WebGL
+  support mode.
 
-## Demo-data and safety limitations
+The motor viewer uses a shadow-casting key light with ambient, hemisphere,
+rim, and fill lighting. Keyboard users can focus the model and use arrow keys
+to orbit and `+` / `-` to zoom; the component list, auto-rotate, and reset
+controls are also keyboard-operable. Reduced-motion preferences disable
+auto-rotation and decorative motion.
 
-- Asset names and readings are fictional, deterministic demonstration data.
-- Simulated temperature, vibration, speed, load, trend, waveform, and spectrum
-  values are not live sensor telemetry and should not be used for operational
-  decisions.
-- The Diagnostics page explicitly reports **ML Model: Not Connected**. Its
-  example patterns are educational only; the application does not diagnose
-  faults, calculate predictions or confidence scores, or estimate remaining
-  useful life.
-- The Digital Twin is a static illustrative assembly. Camera auto-rotation is
-  not machine motion. The local viewer needs WebGL 2; a text fallback is shown
-  when the viewer cannot initialize.
-- There is no backend, database, authentication, equipment connection, model
-  training, or paid API integration.
+There is currently **no backend or API integration**: no API base URL,
+request/service layer, authentication, environment configuration, equipment
+or sensor endpoint, prediction/diagnostics endpoint, OpenRouter integration,
+or Mercury Decide integration. No API URL or environment variable is assumed
+or fabricated. Add server-side configuration and an explicit typed API
+contract when the backend is available; keep private credentials out of
+client-side code and `NEXT_PUBLIC_*` variables.
 
-## Dependency audit note
+The 3D model is illustrative geometry, not a digital representation of a
+registered or measured machine. It does not imply a live connection.
 
-The configured npm registry currently reports five high-severity affected
-package entries from one advisory (`GHSA-vfj7-8cjw-p6xm`) for transitive
-`braces@3.0.3`, reached through the
-development-only lint chain
-`eslint-config-next` → `@next/eslint-plugin-next` → `fast-glob` →
-`micromatch`. The registry has no `braces@3.0.4` release, and `npm audit
-fix --dry-run` proposes downgrading `eslint-config-next` to 14.2.35, which
-would be incompatible with this Next.js 16 project. No automatic or breaking
-dependency changes have been applied. `npm audit --omit=dev` reports zero
-production dependency vulnerabilities; the development-tool advisory remains
-unresolved.
+## Deployment
+
+The project uses Next.js and the standard `npm run build` command, so Vercel
+can detect it as a Next.js application. The application currently needs no
+runtime API environment variables. Configure the actual backend and prediction
+service integrations before presenting live monitoring or deploying as an
+operational predictive-maintenance tool.
